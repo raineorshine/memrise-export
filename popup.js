@@ -1,13 +1,3 @@
-/*
-
-Export Memrise course words to CSV (technically TSV, or "tab separated file", but it is effectively the same).
-
-1. Log into Memrise.
-2. Navigate to the course page you would like to export (e.g. https://app.memrise.com/course/2156672/german-random-01/).
-4. Click the "Memrise Export" extension toolbar button.
-
-*/
-
 // a global courseSlug variable to avoid a more complex return type in getWords
 // dirty...
 let courseSlug
