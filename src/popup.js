@@ -32,7 +32,7 @@ const source = new Promise((resolve, reject) => {
 })
 
 /** Returns a Promise of a list of all words in a course. */
-function getWords(courseId, level=0, skip = {}) {
+async function getWords(courseId, level=0, skip = {}) {
 
   if (skip[level]) {
     log(`Skipping p${level}... (Multimedia)`)
@@ -44,48 +44,40 @@ function getWords(courseId, level=0, skip = {}) {
   }
 
   const url = `https://app.memrise.com/ajax/session/?course_id=${courseId}&level_index=${level + 1}&session_slug=preview`
-  return fetch(url, { credentials: 'same-origin' })
-    // parse response
-    .then(res => res.ok
-      ? res.json()
-        // map results
-        .then(data => {
-          const { name, num_things, num_levels, slug } = data.session.course
 
-          // set a global courseSlug variable to avoid a more complex return type
-          // dirty...
-          courseSlug = slug
+  const res = await fetch(url, { credentials: 'same-origin' })
 
-          if (level === 0) {
-            log(`Exporting ${num_things} words (${num_levels} pages) from "${name}"`)
-          }
-
-          // update popup message
-          const percentComplete = (level + 1) / num_levels * 100
-          document.getElementById('message').innerHTML = `Loading (${percentComplete}%)`
-
-          return data.learnables.map(row => ({
-            original: row.item.value,
-            translation: row.definition.value
-          }))
-        })
-        .then(words =>
-          // RECURSION
-          getWords(courseId, level + 1, skip)
-            .then(words.concat.bind(words))
-        )
-      // print an error if they are not logged in
-      : res.status > 400 ? res.text().then(text => {
-        document.getElementById('message').innerHTML = 'Error'
-        alert(`Error (${res.status}): ${text}`)
-        return []
-      })
-      : []
-  )
-  .catch(err => {
-    console.error(err)
+  if (!res.ok) {
+    if (res.status > 400) {
+      document.getElementById('message').innerHTML = 'Error'
+      alert(`Error (${res.status}): ${text}`)
+    }
     return []
-  })
+  }
+
+  const data = await res.json()
+  const { name, num_things, num_levels, slug } = data.session.course
+
+  // set a global courseSlug variable to avoid a more complex return type
+  // dirty...
+  courseSlug = slug
+
+  if (level === 0) {
+    log(`Exporting ${num_things} words (${num_levels} pages) from "${name}"`)
+  }
+
+  // update popup message
+  const percentComplete = (level + 1) / num_levels * 100
+  document.getElementById('message').innerHTML = `Loading (${percentComplete}%)`
+
+  const words = data.learnables.map(row => ({
+    original: row.item.value,
+    translation: row.definition.value
+  }))
+
+  const wordsNext = await getWords(courseId, level + 1, skip)
+
+  return [...words, ...wordsNext]
 }
 
 const run = () => {
