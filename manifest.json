@@ -1,6 +1,6 @@
 {
   "name": "Memrise Export",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Export all words from a Memrise course to a CSV file.",
   "manifest_version": 2,
   "permissions": ["downloads", "activeTab", "https://app.memrise.com/*"],
