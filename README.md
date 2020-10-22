@@ -18,10 +18,12 @@ Based on the Gist: https://gist.github.com/raineorshine/68fab3b4b96f54b808a85821
 3. Click the "Memrise Export" extension toolbar button.
 4. Save TSV file with all words from the course.
 
-# Development
+# Deployment
 
-Run build to bundle npm packages into popup.js:
+Run build to bundle npm packages into popup.js and copy to build folder:
 
 ```js
 npm run build
 ```
+
+Then zip the build folder and upload to the Google Web Store.
