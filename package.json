@@ -14,7 +14,9 @@
     "nodemon": "^2.0.6"
   },
   "scripts": {
-    "build": "browserify src/popup.js > popup.js",
+    "copy": "mkdir -p build && cp -r src/* build/",
+    "browserify": "browserify src/popup.js > build/popup.js",
+    "build": "npm run copy && npm run browserify",
     "watch": "nodemon -w src -x \"npm run build\""
   },
   "private": true
