@@ -17,3 +17,11 @@ Based on the Gist: https://gist.github.com/raineorshine/68fab3b4b96f54b808a85821
 2. Navigate to the course page you would like to export (e.g. https://app.memrise.com/course/2156672/german-random-01/).
 3. Click the "Memrise Export" extension toolbar button.
 4. Save TSV file with all words from the course.
+
+# Development
+
+Run build to bundle npm packages into popup.js:
+
+```js
+npm run build
+```

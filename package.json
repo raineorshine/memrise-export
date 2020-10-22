@@ -1,0 +1,21 @@
+{
+  "name": "memrise-export",
+  "description": "A Chrome Extension that exports all words from a Memrise course to a CSV file.",
+  "version": "0.0.0",
+  "author": {
+    "name": "Raine Revere",
+    "email": "raine@cybersemics.org",
+    "url": "https://github.com/raineorshine"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "browserify": "^17.0.0",
+    "cheerio": "^1.0.0-rc.3",
+    "nodemon": "^2.0.6"
+  },
+  "scripts": {
+    "build": "browserify src/popup.js > popup.js",
+    "watch": "nodemon -w src -x \"npm run build\""
+  },
+  "private": true
+}

@@ -1,12 +1,48 @@
+const cheerio = require('cheerio')
+
 // a global courseSlug variable to avoid a more complex return type in getWords
 // dirty...
 let courseSlug
 
-/** Returns a Promise of a list of all words in a course. */
-function getWords(courseId, level=0) {
-  if (level > 0) {
-    console.log(`Loading Page ${level}...`)
+function log(message) {
+  chrome.runtime.sendMessage({
+    type: 'log',
+    message,
+  })
+}
+
+/** A promise that resolve to the page source html. */
+const source = new Promise((resolve, reject) => {
+
+  chrome.runtime.onMessage.addListener((message, sender) => {
+    if (message.action === "getSource") {
+      resolve(message.source)
+    }
+  })
+
+  window.onload = () => {
+    chrome.tabs.executeScript(null, { file: "getPageSource.js"}, () => {
+      // If you try and inject into an extensions page or the webstore/NTP you'll get an error
+      if (chrome.runtime.lastError) {
+        reject('There was an error injecting script : \n' + chrome.runtime.lastError.message)
+      }
+    })
   }
+
+})
+
+/** Returns a Promise of a list of all words in a course. */
+function getWords(courseId, level=0, skip = {}) {
+
+  if (skip[level]) {
+    log(`Skipping p${level}... (Multimedia)`)
+    return getWords(courseId, level + 1, skip)
+  }
+
+  if (level > 0) {
+    log(`Loading p${level}...`)
+  }
+
   const url = `https://app.memrise.com/ajax/session/?course_id=${courseId}&level_index=${level + 1}&session_slug=preview`
   return fetch(url, { credentials: 'same-origin' })
     // parse response
@@ -21,7 +57,7 @@ function getWords(courseId, level=0) {
           courseSlug = slug
 
           if (level === 0) {
-            console.log(`Exporting ${num_things} words (${num_levels} pages) from "${name}"`)
+            log(`Exporting ${num_things} words (${num_levels} pages) from "${name}"`)
           }
 
           // update popup message
@@ -35,7 +71,7 @@ function getWords(courseId, level=0) {
         })
         .then(words =>
           // RECURSION
-          getWords(courseId, level + 1)
+          getWords(courseId, level + 1, skip)
             .then(words.concat.bind(words))
         )
       // print an error if they are not logged in
@@ -54,7 +90,7 @@ function getWords(courseId, level=0) {
 
 const run = () => {
 
-  chrome.tabs.query({ active: true, currentWindow: true }, tabs => {
+  chrome.tabs.query({ active: true, currentWindow: true }, async tabs => {
 
     const tab = tabs[0]
 
@@ -73,21 +109,36 @@ const run = () => {
       window.close()
       return
     }
-
     // extract the slug from the url just in case courseSlug was not set
     const slug = tab.url.slice(('https://app.memrise.com/course/' + id).length + 1, tab.url.length - 1)
 
+    log('Loading page source...')
+    const html = await source
+    const $ = cheerio.load(html)
+
+    // build an index of non-multimedia levels
+    const multimediaLevels = $('.levels .level').toArray()
+      .map(level => ({
+        index: $(level).find('.level-index').text(),
+        multimedia: $(level).find('.level-ico-multimedia-inactive').length > 0,
+      }))
+      .reduce((accum, level) => ({
+        ...accum,
+        ...level.multimedia ? { [level.index - 1]: true } : null
+      }), {})
+
     // get the words
-    getWords(id).then(words => {
-      const text = words.map(word => `${word.translation}\t${word.original}\n`).join('')
-      chrome.runtime.sendMessage({
-        type: 'download',
-        filename: `${courseSlug || slug}.tsv`,
-        text,
-      })
-      console.log('Done')
-      window.close()
+    const words = await getWords(id, 0, multimediaLevels)
+    const tsv = words.map(word => `${word.translation}\t${word.original}\n`).join('')
+    chrome.runtime.sendMessage({
+      type: 'download',
+      filename: `${courseSlug || slug}.tsv`,
+      text: tsv,
     })
+
+    log('Done')
+
+    window.close()
 
   })
 

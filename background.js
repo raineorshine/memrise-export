@@ -10,9 +10,15 @@ const download = (filename, text, type = 'text/plain') => {
 }
 
 chrome.runtime.onMessage.addListener(
-  function({ type, filename, text }, sender, sendResponse) {
-    if (type == 'download') {
+  function(args, sender, sendResponse) {
+    const { type } = args
+    if (type === 'download') {
+      const { filename, text } = args
       download(filename, text, 'text/tsv')
+    }
+    else if (type === 'log') {
+      const { message } = args
+      console.log(message)
     }
   }
 )
