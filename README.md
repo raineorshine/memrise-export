@@ -1,4 +1,4 @@
-A Chrome Extension to export all words from a [Memrise](https://memrise.com) course to a CSV file.
+A [Chrome Extension](https://chrome.google.com/webstore/detail/memrise-export/hcllgkpmoiolndnhmbdceffaidjmkoam?hl=en) to export all words from a [Memrise](https://memrise.com) course to a CSV file.
 
 Technically it exports TSV, or "tab separated file", which is generally compatible wherever CSV is.
 
