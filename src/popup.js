@@ -11,6 +11,12 @@ function log(message) {
   })
 }
 
+/** Rounds a number to the given number of digits after the decimel. */
+function round(n, digits = 0) {
+  const multiplier = Math.pow(10, digits)
+  return Math.round(n * multiplier) / multiplier
+}
+
 /** A promise that resolve to the page source html. */
 const source = new Promise((resolve, reject) => {
 
@@ -67,7 +73,7 @@ async function getWords(courseId, level=0, skip = {}) {
   }
 
   // update popup message
-  const percentComplete = (level + 1) / num_levels * 100
+  const percentComplete = round((level + 1) / num_levels * 100)
   document.getElementById('message').innerHTML = `Loading (${percentComplete}%)`
 
   const words = data.learnables.map(row => ({
