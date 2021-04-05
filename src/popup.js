@@ -20,22 +20,20 @@ function round(n, digits = 0) {
 /** A promise that resolve to the page source html. */
 const source = new Promise((resolve, reject) => {
 
-    chrome.runtime.onMessage.addListener((message, sender) => {
-        if (message.action === "getSource") {
-            resolve(message.source)
-        }
-    })
-
-    window.onload = () => {
-        chrome.tabs.executeScript(null, {
-            file: "getPageSource.js"
-        }, () => {
-            // If you try and inject into an extensions page or the webstore/NTP you'll get an error
-            if (chrome.runtime.lastError) {
-                reject('There was an error injecting script : \n' + chrome.runtime.lastError.message)
-            }
-        })
+  chrome.runtime.onMessage.addListener((message, sender) => {
+    if (message.action === "getSource") {
+      resolve(message.source)
     }
+  })
+
+  window.onload = () => {
+    chrome.tabs.executeScript(null, { file: "getPageSource.js"}, () => {
+      // If you try and inject into an extensions page or the webstore/NTP you'll get an error
+      if (chrome.runtime.lastError) {
+        reject('There was an error injecting script : \n' + chrome.runtime.lastError.message)
+      }
+    })
+  }
 
 })
 
@@ -53,25 +51,18 @@ async function getWords(courseId, level = 0, skip = {}) {
 
     const url = `https://app.memrise.com/ajax/session/?course_id=${courseId}&level_index=${level + 1}&session_slug=preview`
 
-    const res = await fetch(url, {
-        credentials: 'same-origin'
-    })
+    const res = await fetch(url, { credentials: 'same-origin' })
 
     if (!res.ok) {
-        if (res.status > 400) {
-            document.getElementById('message').innerHTML = 'Error'
-            alert(`Error (${res.status}): ${text}`)
-        }
-        return []
+    if (res.status > 400) {
+      document.getElementById('message').innerHTML = 'Error'
+      alert(`Error (${res.status}): ${text}`)
     }
+    return []
+  }
 
-    const data = await res.json()
-    const {
-        name,
-        num_things,
-        num_levels,
-        slug
-    } = data.session.course
+   const data = await res.json()
+   const { name, num_things, num_levels, slug } = data.session.course
 
     // set a global courseSlug variable to avoid a more complex return type
     // dirty...
@@ -110,48 +101,43 @@ async function getWords(courseId, level = 0, skip = {}) {
 
 const run = (all_wordsTF, difficult_wordsTF) => {
 
-    chrome.tabs.query({
-        active: true,
-        currentWindow: true
-    }, async tabs => {
+   chrome.tabs.query({ active: true, currentWindow: true }, async tabs => {
 
-        const tab = tabs[0]
+    const tab = tabs[0]
 
-        if (!tab.url.includes('https://app.memrise.com/course/')) {
-            alert('Only works on https://app.memrise.com/course/*')
-            window.close()
-            return
-        }
+    if (!tab.url.includes('https://app.memrise.com/course/')) {
+      alert('Only works on https://app.memrise.com/course/*')
+      window.close()
+      return
+    }
 
-        // parse the course id
-        courseIdMatch = tab.url.slice('https://app.memrise.com/course'.length).match(/\d+/)
-        const id = courseIdMatch && courseIdMatch[0]
+    // parse the course id
+    courseIdMatch = tab.url.slice('https://app.memrise.com/course'.length).match(/\d+/)
+    const id = courseIdMatch && courseIdMatch[0]
 
-        if (!id) {
-            alert('Invalid id')
-            window.close()
-            return
-        }
-        // extract the slug from the url just in case courseSlug was not set
-        const slug = tab.url.slice(('https://app.memrise.com/course/' + id).length + 1, tab.url.length - 1)
+    if (!id) {
+      alert('Invalid id')
+      window.close()
+      return
+    }
+    // extract the slug from the url just in case courseSlug was not set
+    const slug = tab.url.slice(('https://app.memrise.com/course/' + id).length + 1, tab.url.length - 1)
 
-        log('Loading page source...')
-        const html = await source
-        const $ = cheerio.load(html)
+    log('Loading page source...')
+    const html = await source
+    const $ = cheerio.load(html)
 
-        // build an index of non-multimedia levels
-        const multimediaLevels = $('.levels .level').toArray()
-            .map(level => ({
-                index: $(level).find('.level-index').text(),
-                multimedia: $(level).find('.level-ico-multimedia-inactive').length > 0,
-            }))
-            .reduce((accum, level) => ({
-                ...accum,
-                ...level.multimedia ? {
-                    [level.index - 1]: true
-                } : null
-            }), {})
-
+    // build an index of non-multimedia levels
+    const multimediaLevels = $('.levels .level').toArray()
+      .map(level => ({
+        index: $(level).find('.level-index').text(),
+        multimedia: $(level).find('.level-ico-multimedia-inactive').length > 0,
+      }))
+      .reduce((accum, level) => ({
+        ...accum,
+        ...level.multimedia ? { [level.index - 1]: true } : null
+      }), {})
+    
         // get the words
         const words = await getWords(id, 0, multimediaLevels)
         if (all_wordsTF) {
