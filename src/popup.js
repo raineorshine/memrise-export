@@ -12,13 +12,20 @@ function log(message) {
   })
 }
 
+/** Prints a message in the message box. */
+function print(message) {
+  const messageEl = document.getElementById('message')
+  messageEl.innerHTML = message
+  messageEl.style.display = 'block'
+}
+
 /** Rounds a number to the given number of digits after the decimel. */
 function round(n, digits = 0) {
   const multiplier = Math.pow(10, digits)
   return Math.round(n * multiplier) / multiplier
 }
 
-/** A promise that resolve to the page source html. */
+/** A promise that resolves to the page source html. */
 const source = new Promise((resolve, reject) => {
 
   chrome.runtime.onMessage.addListener((message, sender) => {
@@ -142,33 +149,27 @@ const run = () => {
     const tsvWords = (difficultWords ? words.filter(word => word.is_difficult) : words)
       .map(word => `${word.translation}\t${word.original}\n`).join('')
 
-    if (words.length > 0) {
+    if (tsvWords.length > 0) {
       chrome.runtime.sendMessage({
         type: 'download',
         filename: `${courseSlug || slug}${difficultWords ? '-difficult-words.tsv' : ''}.tsv`,
         text: tsvWords,
       })
+
+      print('Done!')
+      log('Done!')
     }
     else {
-      alert(`No ${difficultWords ? 'difficult ' : ''}words`)
+      const message = `No ${difficultWords ? 'difficult ' : ''}words`
+      print(message)
+      log(message)
     }
-
-    // reset message
-    const doneMessage = words.length > 0 ? 'Done!' : 'No words'
-    print(doneMessage)
-    log(doneMessage)
 
   })
 
 }
 
-/** Prints a message in the message box. */
-function print(message) {
-  const messageEl = document.getElementById('message')
-  messageEl.innerHTML = message
-  messageEl.style.display = 'block'
-}
-
+// run when the export button is clicked
 document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('export').addEventListener('click', run)
 }, false)
