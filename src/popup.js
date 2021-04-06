@@ -94,7 +94,11 @@ async function getWords(courseId, level = 0, skip = {}) {
   return [...words, ...wordsNext]
 }
 
-const run = (allWords, difficultWords) => {
+const run = () => {
+
+  const allWords = document.getElementById('words-all').checked
+  const difficultWords = document.getElementById('words-difficult').checked
+  print('Loading (0%)')
 
   chrome.tabs.query({ active: true, currentWindow: true }, async tabs => {
 
@@ -171,21 +175,6 @@ const run = (allWords, difficultWords) => {
 
 }
 
-function scrapping() {
-  // get the user's export choices
-  const allWords = document.getElementById('words-all').checked
-  const difficultWords = document.getElementById('words-difficult').checked
-
-  if (allWords || difficultWords) {
-    // display the loading message
-    print('Loading (0%)')
-    run(allWords, difficultWords)
-  }
-  else {
-    print('Nothing to export')
-  }
-}
-
 /** Prints a message in the message box. */
 function print(message) {
   const messageEl = document.getElementById('message')
@@ -193,15 +182,6 @@ function print(message) {
   messageEl.style.display = 'block'
 }
 
-/** Clears the message box. */
-function clear() {
-  const messageEl = document.getElementById('message')
-  messageEl.innerHTML = ``
-  messageEl.style.display = 'none'
-}
-
 document.addEventListener('DOMContentLoaded', function () {
-  document.getElementById('export').addEventListener('click', scrapping)
-  document.getElementById('words-all').addEventListener('click', clear)
-  document.getElementById('words-diff').addEventListener('click', clear)
+  document.getElementById('export').addEventListener('click', run)
 }, false)
