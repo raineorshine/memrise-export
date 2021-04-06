@@ -64,7 +64,8 @@ async function getWords(courseId, level = 0, skip = {}) {
   if (!res.ok) {
     if (res.status > 400) {
       print('Error')
-      alert(`Error (${res.status}): ${res.text}`)
+      alert(`Error (${res.status}): ${await res.text()}`)
+      window.close()
     }
     return []
   }
@@ -112,7 +113,7 @@ const run = () => {
     const tab = tabs[0]
 
     if (!tab.url.includes('https://app.memrise.com/course/')) {
-      alert('Memrise Export only works on Memrise course pages: https://app.memrise.com/course/*')
+      alert('Only works on Memrise course pages: https://app.memrise.com/course/*')
       window.close()
       return
     }
@@ -122,7 +123,7 @@ const run = () => {
     const id = courseIdMatch && courseIdMatch[0]
 
     if (!id) {
-      alert('Invalid id')
+      alert('Invalid course id')
       window.close()
       return
     }
