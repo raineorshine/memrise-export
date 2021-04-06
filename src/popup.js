@@ -46,11 +46,11 @@ const source = new Promise((resolve, reject) => {
 })
 
 /** Returns a Promise of a list of all words in a course. */
-async function getWords(courseId, level = 0, skip = {}) {
+async function getWords(courseId, level = 0, { numLevelsEstimated, skip }) {
 
-  if (skip[level]) {
+  if (skip && skip[level]) {
     log(`Skipping p${level}... (Multimedia)`)
-    return getWords(courseId, level + 1, skip)
+    return getWords(courseId, level + 1, { numLevelsEstimated, skip })
   }
 
   if (level > 0) {
@@ -67,6 +67,12 @@ async function getWords(courseId, level = 0, skip = {}) {
       alert(`Error (${res.status}): ${await res.text()}`)
       window.close()
     }
+    // if there is no response and we have not gone through all the lessons from the course page, then we have likely hit a grammar course which is mobile app only
+    else if (level < numLevelsEstimated) {
+      log(`Skipping p${level}... (Missing, likely Grammar)`)
+      return getWords(courseId, level + 1, { numLevelsEstimated, skip })
+    }
+    // else no more levels means we are finished
     return []
   }
 
@@ -98,7 +104,7 @@ async function getWords(courseId, level = 0, skip = {}) {
     is_difficult: !!difficultWordsLearnableId.includes(row.learnable_id)
   }))
 
-  const wordsNext = await getWords(courseId, level + 1, skip)
+  const wordsNext = await getWords(courseId, level + 1, { numLevelsEstimated, skip })
 
   return [...words, ...wordsNext]
 }
@@ -135,7 +141,8 @@ const run = () => {
     const $ = cheerio.load(html)
 
     // build an index of non-multimedia levels
-    const multimediaLevels = $('.levels .level').toArray()
+    const levels = $('.levels .level').toArray()
+    const multimediaLevels = levels
       .map(level => ({
         index: $(level).find('.level-index').text(),
         multimedia: $(level).find('.level-ico-multimedia-inactive').length > 0,
@@ -146,7 +153,7 @@ const run = () => {
       }), {})
 
     // get the words
-    const words = await getWords(id, 0, multimediaLevels)
+    const words = await getWords(id, 0, { numLevelsEstimated: levels.length, skip: multimediaLevels })
     const tsvWords = (difficultWords ? words.filter(word => word.is_difficult) : words)
       .map(word => `${word.translation}\t${word.original}\n`).join('')
 
