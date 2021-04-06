@@ -1,7 +1,33 @@
 <!DOCTYPE html>
 <html>
-  <body>
-    <div id="message" style="white-space: nowrap;">Loading (0%)</div>
+<style>
+  #message {
+    display: none;
+    clear: right;
+    padding: 5px;
+    margin: 5px;
+    box-shadow: 1px 1px 5px #555 inset;
+    background-color: rgb(201, 197, 197);
+  }
+</style>
+
+<body>
+  <div style="width: 150px;">
     <script src="popup.js"></script>
-  </body>
+    <div>Export options:</div>
+
+    <div>
+      <input type="checkbox" id="all" name="all" checked>
+      <label for="all">All words</label>
+    </div>
+
+    <div>
+      <input type="checkbox" id="diff" name="diff" checked>
+      <label for="diff" id="difflabel">Difficults words</label>
+    </div>
+    <input id="export" type="button" value="Export" style="margin:5px; float: right;" />
+    <div id="message"> Loading (0%) </div>
+  </div>
+</body>
+
 </html>
