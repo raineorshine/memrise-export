@@ -4,6 +4,7 @@ const cheerio = require('cheerio')
 // dirty...
 let courseSlug
 
+/** Logs a message to thec onsole. */
 function log(message) {
   chrome.runtime.sendMessage({
     type: 'log',
@@ -96,7 +97,6 @@ async function getWords(courseId, level = 0, skip = {}) {
 
 const run = () => {
 
-  const allWords = document.getElementById('words-all').checked
   const difficultWords = document.getElementById('words-difficult').checked
   print('Loading (0%)')
 
@@ -139,37 +139,24 @@ const run = () => {
 
     // get the words
     const words = await getWords(id, 0, multimediaLevels)
-    if (allWords) {
-      const tsvAllWords = words.map(word => `${word.translation}\t${word.original}\n`).join('')
+    const tsvWords = (difficultWords ? words.filter(word => word.is_difficult) : words)
+      .map(word => `${word.translation}\t${word.original}\n`).join('')
+
+    if (words.length > 0) {
       chrome.runtime.sendMessage({
         type: 'download',
-        filename: `${courseSlug || slug}.tsv`,
-        text: tsvAllWords,
+        filename: `${courseSlug || slug}${difficultWords ? '-difficult-words.tsv' : ''}.tsv`,
+        text: tsvWords,
       })
     }
-
-    if (difficultWords) {
-      const tsvDifficultWords = words.filter(word => word.is_difficult).map(word => `${word.translation}\t${word.original}\n`).join('')
-      if (tsvDifficultWords) {
-        chrome.runtime.sendMessage({
-          type: 'download',
-          filename: `${courseSlug || slug}_difficult_words.tsv`,
-          text: tsvDifficultWords,
-        })
-      }
-      else {
-        // update the difficult words checkbox
-        const difflabel = document.getElementById('difflabel')
-        difflabel.innerHTML = `(No difficult words in this course)`
-        const diff = document.getElementById('words-difficult')
-        diff.disabled = 'disabled'
-        diff.checked = false
-      }
+    else {
+      alert(`No ${difficultWords ? 'difficult ' : ''}words`)
     }
 
     // reset message
-    print('Done')
-    log('Done')
+    const doneMessage = words.length > 0 ? 'Done!' : 'No words'
+    print(doneMessage)
+    log(doneMessage)
 
   })
 
