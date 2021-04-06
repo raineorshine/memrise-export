@@ -1,4 +1,4 @@
-const cheerio = require('cheerio')
+// const cheerio = require('cheerio')
 
 // a global courseSlug variable to avoid a more complex return type in getWords
 // dirty...
@@ -38,18 +38,21 @@ const source = new Promise((resolve, reject) => {
 })
 
 /** Returns a Promise of a list of all words in a course. */
-async function getWords(courseId, level = 0, skip = {}) {
+async function getWords(courseId, level = 0, skip = {},number_levels_in_course) {
+
+    const current_level = level + 1
+    if (current_level <= number_levels_in_course) {
 
     if (skip[level]) {
         log(`Skipping p${level}... (Multimedia)`)
-        return getWords(courseId, level + 1, skip)
+        return getWords(courseId, current_level, skip,number_levels_in_course)
     }
 
     if (level > 0) {
         log(`Loading p${level}...`)
     }
 
-    const url = `https://app.memrise.com/ajax/session/?course_id=${courseId}&level_index=${level + 1}&session_slug=preview`
+    const url = `https://app.memrise.com/ajax/session/?course_id=${courseId}&level_index=${current_level}&session_slug=preview`
 
     const res = await fetch(url, { credentials: 'same-origin' })
 
@@ -58,7 +61,9 @@ async function getWords(courseId, level = 0, skip = {}) {
       document.getElementById('message').innerHTML = 'Error'
       alert(`Error (${res.status}): ${text}`)
     }
-    return []
+    const wordsNext = await getWords(courseId, level + 1, skip, number_levels_in_course)
+    return [...[], ...wordsNext] 
+    // return []
   }
 
    const data = await res.json()
@@ -73,7 +78,7 @@ async function getWords(courseId, level = 0, skip = {}) {
     }
 
     // update popup message
-    const percentComplete = round((level + 1) / num_levels * 100)
+    const percentComplete = round((current_level) / num_levels * 100)
     document.getElementById('message').innerHTML = `Loading (${percentComplete}%)`
 
 
@@ -94,10 +99,14 @@ async function getWords(courseId, level = 0, skip = {}) {
         is_difficult: (difficult_words_learnable_id.includes(row.learnable_id)) ? true : false
     }))
 
-    const wordsNext = await getWords(courseId, level + 1, skip)
+    const wordsNext = await getWords(courseId, current_level, skip, number_levels_in_course)
 
     return [...words, ...wordsNext]
-}
+
+    }  else {
+    return []
+  }
+  }
 
 const run = (all_wordsTF, difficult_wordsTF) => {
 
@@ -125,21 +134,29 @@ const run = (all_wordsTF, difficult_wordsTF) => {
 
     log('Loading page source...')
     const html = await source
-    const $ = cheerio.load(html)
 
-    // build an index of non-multimedia levels
-    const multimediaLevels = $('.levels .level').toArray()
-      .map(level => ({
-        index: $(level).find('.level-index').text(),
-        multimedia: $(level).find('.level-ico-multimedia-inactive').length > 0,
-      }))
-      .reduce((accum, level) => ({
-        ...accum,
-        ...level.multimedia ? { [level.index - 1]: true } : null
-      }), {})
+    //get number_levels_in_course
+    var dom = document.createElement('body');
+    dom.innerHTML = html;
+    const levels_level = dom.querySelectorAll(".levels, .level");
+    const number_levels_in_course = levels_level.length
+
+    // cheerio not needed anymore but code keept just in case 
+    const multimediaLevels = []
+    // const $ = cheerio.load(html)
+    // // build an index of non-multimedia levels
+    // const multimediaLevels = $('.levels .level').toArray()
+    //   .map(level => ({
+    //     index: $(level).find('.level-index').text(),
+    //     multimedia: $(level).find('.level-ico-multimedia-inactive').length > 0,
+    //   }))
+    //   .reduce((accum, level) => ({
+    //     ...accum,
+    //     ...level.multimedia ? { [level.index - 1]: true } : null
+    //   }), {})
     
         // get the words
-        const words = await getWords(id, 0, multimediaLevels)
+        const words = await getWords(id, 0, multimediaLevels, number_levels_in_course)
         if (all_wordsTF) {
             const tsv_all_words = words.map(word => `${word.translation}\t${word.original}\n`).join('')
             chrome.runtime.sendMessage({
