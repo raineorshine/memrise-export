@@ -55,7 +55,7 @@ async function getWords(courseId, level = 0, skip = {}) {
 
   if (!res.ok) {
     if (res.status > 400) {
-      document.getElementById('message').innerHTML = 'Error'
+      print('Error')
       alert(`Error (${res.status}): ${res.text}`)
     }
     return []
@@ -74,7 +74,7 @@ async function getWords(courseId, level = 0, skip = {}) {
 
   // update popup message
   const percentComplete = round((level + 1) / numLevels * 100)
-  document.getElementById('message').innerHTML = `Loading (${percentComplete}%)`
+  print(`Loading (${percentComplete}%)`)
 
   // get learnable_id of difficult words
   // for each item in thingusers that is mark as "is_difficult", get the learnable_id, and then find the original and translation of this learnable_id
@@ -164,8 +164,7 @@ const run = (allWords, difficultWords) => {
     }
 
     // reset message
-    const message = document.getElementById('message')
-    message.innerHTML = `Done`
+    print('Done')
     log('Done')
 
   })
@@ -179,27 +178,30 @@ function scrapping() {
 
   if (allWords || difficultWords) {
     // display the loading message
-    const message = document.getElementById('message')
-    message.innerHTML = `Loading (0%)`
-    message.style.display = 'block'
-
+    print('Loading (0%)')
     run(allWords, difficultWords)
   }
   else {
-    const message = document.getElementById('message')
-    message.innerHTML = `Nothing to export`
-    message.style.display = 'block'
+    print('Nothing to export')
   }
 }
 
-function resetmessage() {
-  const message = document.getElementById('message')
-  message.innerHTML = ``
-  message.style.display = 'none'
+/** Prints a message in the message box. */
+function print(message) {
+  const messageEl = document.getElementById('message')
+  messageEl.innerHTML = message
+  messageEl.style.display = 'block'
+}
+
+/** Clears the message box. */
+function clear() {
+  const messageEl = document.getElementById('message')
+  messageEl.innerHTML = ``
+  messageEl.style.display = 'none'
 }
 
 document.addEventListener('DOMContentLoaded', function () {
   document.getElementById('export').addEventListener('click', scrapping)
-  document.getElementById('words-all').addEventListener('click', resetmessage)
-  document.getElementById('words-diff').addEventListener('click', resetmessage)
+  document.getElementById('words-all').addEventListener('click', clear)
+  document.getElementById('words-diff').addEventListener('click', clear)
 }, false)
