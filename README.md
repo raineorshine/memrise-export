@@ -12,12 +12,9 @@ https://chrome.google.com/webstore/detail/memrise-export/hcllgkpmoiolndnhmbdceff
 ## Build from Source
 
 1. Clone/Download this repo
-1. Install [NodeJS](https://nodejs.org/)
-1. Open a command shell in the repo directory and run `npm install`
-1. Run `npm run build`
-1. Open Chrome Extensions (navigate to `chrome://extensions`)
+1. Open `chrome://extensions`
 1. Enable "Developer Mode"
-1. Click "Load unpacked" and choose the `build` subfolder in the repo directory
+1. Click "Load unpacked" and choose the `src` subfolder from the repo
 
 ## Example
 
@@ -28,10 +25,4 @@ https://chrome.google.com/webstore/detail/memrise-export/hcllgkpmoiolndnhmbdceff
 
 ## Deployment
 
-Run build to bundle npm packages into popup.js and copy to build folder:
-
-```js
-npm run build
-```
-
-Then zip the build folder and upload to the Google Web Store.
+Zip the `src` folder and upload to the Google Web Store.
