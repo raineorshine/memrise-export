@@ -77,7 +77,7 @@ async function getWords(courseId, level = 0, skip = {}) {
     document.getElementById('message').innerHTML = `Loading (${percentComplete}%)`
 
 
-    // get learnable_id of difficult words 
+    // get learnable_id of difficult words
     difficult_words_learnable_id = []
     // for each item in thingusers that is mark as "is_difficult", get the learnable_id, and then find the original and translation of this learnable_id
     for (index_t in data["thingusers"]) {
@@ -137,7 +137,7 @@ const run = (all_wordsTF, difficult_wordsTF) => {
         ...accum,
         ...level.multimedia ? { [level.index - 1]: true } : null
       }), {})
-    
+
         // get the words
         const words = await getWords(id, 0, multimediaLevels)
         if (all_wordsTF) {
@@ -160,8 +160,8 @@ const run = (all_wordsTF, difficult_wordsTF) => {
             } else {
                 // update the difficult words checkbox
                 const difflabel = document.getElementById('difflabel')
-                difflabel.innerHTML = `<span style="color:red;">Not difficult words in this course</span>`
-                const diff = document.getElementById('diff')
+                difflabel.innerHTML = `(No difficult words in this course)`
+                const diff = document.getElementById('words-difficult')
                 diff.disabled = "disabled"
                 diff.checked = false
             }
@@ -179,9 +179,9 @@ const run = (all_wordsTF, difficult_wordsTF) => {
 
 
 function scrapping() {
-    // get the user's export choices 
-    const all_wordsTF = document.getElementById('all').checked
-    const difficult_wordsTF = document.getElementById('diff').checked
+    // get the user's export choices
+    const all_wordsTF = document.getElementById('words-all').checked
+    const difficult_wordsTF = document.getElementById('words-difficult').checked
 
     if (all_wordsTF || difficult_wordsTF) {
         // display the loading message
@@ -206,6 +206,6 @@ function resetmessage() {
 
 document.addEventListener('DOMContentLoaded', function () {
     document.getElementById("export").addEventListener("click", scrapping);
-    document.getElementById("all").addEventListener("click", resetmessage);
-    document.getElementById("diff").addEventListener("click", resetmessage);
+    document.getElementById("words-all").addEventListener("click", resetmessage);
+    document.getElementById("words-diff").addEventListener("click", resetmessage);
 }, false);
