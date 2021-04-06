@@ -26,7 +26,6 @@
   },
   "dependencies": {
     "browserify": "^17.0.0",
-    "cheerio": "^1.0.0-rc.3",
     "nodemon": "^2.0.6"
   },
   "devDependencies": {

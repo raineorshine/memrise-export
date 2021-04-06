@@ -1,5 +1,3 @@
-const cheerio = require('cheerio')
-
 // a global courseSlug variable to avoid a more complex return type in getWords
 // dirty...
 let courseSlug
@@ -46,12 +44,7 @@ const source = new Promise((resolve, reject) => {
 })
 
 /** Returns a Promise of a list of all words in a course. */
-async function getWords(courseId, level = 0, { numLevelsEstimated, skip }) {
-
-  if (skip && skip[level]) {
-    log(`Skipping p${level}... (Multimedia)`)
-    return getWords(courseId, level + 1, { numLevelsEstimated, skip })
-  }
+async function getWords(courseId, level = 0, { numLevels }) {
 
   if (level > 0) {
     log(`Loading p${level}...`)
@@ -68,27 +61,27 @@ async function getWords(courseId, level = 0, { numLevelsEstimated, skip }) {
       window.close()
     }
     // if there is no response and we have not gone through all the lessons from the course page, then we have likely hit a grammar course which is mobile app only
-    else if (level < numLevelsEstimated) {
-      log(`Skipping p${level}... (Missing, likely Grammar)`)
-      return getWords(courseId, level + 1, { numLevelsEstimated, skip })
+    else if (level < numLevels) {
+      log(`Skipping p${level}... (e.g. Grammar, Multimedia)`)
+      return getWords(courseId, level + 1, { numLevels })
     }
     // else no more levels means we are finished
     return []
   }
 
   const data = await res.json()
-  const { name, num_things: numThings, num_levels: numLevels, slug } = data.session.course
+  const course = data.session.course
 
   // set a global courseSlug variable to avoid a more complex return type
   // dirty...
-  courseSlug = slug
+  courseSlug = course.slug
 
   if (level === 0) {
-    log(`Exporting ${numThings} words (${numLevels} pages) from "${name}"`)
+    log(`Exporting ${course.num_things} words (${course.num_levels} pages) from "${course.name}"`)
   }
 
   // update popup message
-  const percentComplete = round((level + 1) / numLevels * 100)
+  const percentComplete = round((level + 1) / course.num_levels * 100)
   print(`Loading (${percentComplete}%)`)
 
   // get learnable_id of difficult words
@@ -104,7 +97,7 @@ async function getWords(courseId, level = 0, { numLevelsEstimated, skip }) {
     is_difficult: !!difficultWordsLearnableId.includes(row.learnable_id)
   }))
 
-  const wordsNext = await getWords(courseId, level + 1, { numLevelsEstimated, skip })
+  const wordsNext = await getWords(courseId, level + 1, { numLevels })
 
   return [...words, ...wordsNext]
 }
@@ -138,22 +131,12 @@ const run = () => {
 
     log('Loading page source...')
     const html = await source
-    const $ = cheerio.load(html)
-
-    // build an index of non-multimedia levels
-    const levels = $('.levels .level').toArray()
-    const multimediaLevels = levels
-      .map(level => ({
-        index: $(level).find('.level-index').text(),
-        multimedia: $(level).find('.level-ico-multimedia-inactive').length > 0,
-      }))
-      .reduce((accum, level) => ({
-        ...accum,
-        ...level.multimedia ? { [level.index - 1]: true } : null
-      }), {})
+    const dom = document.createElement('body')
+    dom.innerHTML = html
+    const levels = dom.querySelectorAll('.levels .level')
 
     // get the words
-    const words = await getWords(id, 0, { numLevelsEstimated: levels.length, skip: multimediaLevels })
+    const words = await getWords(id, 0, { numLevels: levels.length })
     const tsvWords = (difficultWords ? words.filter(word => word.is_difficult) : words)
       .map(word => `${word.translation}\t${word.original}\n`).join('')
 
