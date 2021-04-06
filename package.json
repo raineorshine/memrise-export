@@ -8,16 +8,35 @@
     "url": "https://github.com/raineorshine"
   },
   "license": "ISC",
+  "private": true,
+  "scripts": {
+    "copy": "mkdir -p build && cp -r src/* build/",
+    "browserify": "browserify src/popup.js > build/popup.js",
+    "build": "npm run copy && npm run browserify",
+    "lint": "eslint src",
+    "watch": "nodemon -w src -x \"npm run build\""
+  },
+  "eslintConfig": {
+    "extends": [
+      "raine"
+    ],
+    "env": {
+      "webextensions": true
+    }
+  },
   "dependencies": {
     "browserify": "^17.0.0",
     "cheerio": "^1.0.0-rc.3",
     "nodemon": "^2.0.6"
   },
-  "scripts": {
-    "copy": "mkdir -p build && cp -r src/* build/",
-    "browserify": "browserify src/popup.js > build/popup.js",
-    "build": "npm run copy && npm run browserify",
-    "watch": "nodemon -w src -x \"npm run build\""
-  },
-  "private": true
+  "devDependencies": {
+    "eslint": "^7.23.0",
+    "eslint-config-raine": "^0.2.2",
+    "eslint-config-standard": "^16.0.2",
+    "eslint-plugin-fp": "^2.3.0",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-jsdoc": "^32.3.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.3.1"
+  }
 }

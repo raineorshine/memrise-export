@@ -1,4 +1,4 @@
 chrome.runtime.sendMessage({
-    action: "getSource",
-    source: document.body.outerHTML,
+  action: 'getSource',
+  source: document.body.outerHTML,
 })
