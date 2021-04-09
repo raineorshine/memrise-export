@@ -137,7 +137,7 @@ const run = () => {
     if (tsvWords.length > 0) {
       chrome.runtime.sendMessage({
         type: 'download',
-        filename: `${courseSlug || slug}${difficultWords ? '-difficult-words.tsv' : ''}.tsv`,
+        filename: `${courseSlug || slug}${difficultWords ? '-difficult-words' : ''}.tsv`,
         text: tsvWords,
       })
 
