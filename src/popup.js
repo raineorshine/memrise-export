@@ -143,7 +143,7 @@ const run = () => {
     if (tsvWords.length > 0) {
       chrome.runtime.sendMessage({
         type: 'download',
-        filename: `${courseSlug || slug}${difficultWords ? '-difficult-words' : ''}.tsv`,
+        filename: `${courseSlug || slug}${difficultWords ? '-difficult-words.tsv' : ''}.tsv`,
         text: tsvWords,
       })
 
@@ -162,29 +162,33 @@ const run = () => {
 
 // run when the export button is clicked
 document.addEventListener('DOMContentLoaded', function () {
-  // if the tab's url is not a Memrise course, disable all the extension features 
+
+  // if the tab's url is not a Memrise course, disable all the extension features
   chrome.tabs.query({
     active: true,
     currentWindow: true
   }, async tabs => {
 
     const tab = tabs[0]
-    const number_slash = tab.url.split("/").length - 1 // 6 when on a course page, 7 when on a level page
-    if (!tab.url.includes('https://app.memrise.com/course/') || number_slash != 6) {
+    const numberSlash = tab.url.split('/').length - 1 // 6 when on a course page, 7 when on a level page
+    if (!tab.url.includes('https://app.memrise.com/course/') || numberSlash !== 6) {
       print('Works only on Memrise course pages:\n app.memrise.com/course/*')
-      const main = document.getElementById("main")
-      main.style.cursor = "not-allowed";
-      var childelements_of_main = main.getElementsByTagName('*')
-      for (i = 0; i < childelements_of_main.length; ++i) {
-        const element = childelements_of_main[i];
-        element.disabled = true;
-        element.style.cursor = "not-allowed";
-        if (element.id == "export") {
-          element.style.backgroundColor = "grey";
+      const main = document.getElementById('main')
+      main.style.cursor = 'not-allowed'
+      const childElementsOfMain = main.getElementsByTagName('*')
+      console.log(childElementsOfMain)
+      Array.from(childElementsOfMain).forEach(function(element) {
+        console.log(element)
+        element.disabled = true
+        element.style.cursor = 'not-allowed'
+        if (element.id === 'export') {
+          element.style.backgroundColor = 'grey'
         }
-      }
+      })
+    }
+    else {
+      document.getElementById('export').addEventListener('click', run)
+    }
 
-    } else {}
-   document.getElementById('export').addEventListener('click', run)
   })
 }, false)
