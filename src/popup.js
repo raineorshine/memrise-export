@@ -111,12 +111,6 @@ const run = () => {
 
     const tab = tabs[0]
 
-    if (!tab.url.includes('https://app.memrise.com/course/')) {
-      alert('Only works on Memrise course pages: https://app.memrise.com/course/*')
-      window.close()
-      return
-    }
-
     // parse the course id
     const courseIdMatch = tab.url.slice('https://app.memrise.com/course'.length).match(/\d+/)
     const id = courseIdMatch && courseIdMatch[0]
@@ -161,6 +155,32 @@ const run = () => {
 }
 
 // run when the export button is clicked
-document.addEventListener('DOMContentLoaded', function () {
-  document.getElementById('export').addEventListener('click', run)
+document.addEventListener('DOMContentLoaded', () => {
+
+  // if the tab's url is not a Memrise course, disable all the extension features
+  chrome.tabs.query({
+    active: true,
+    currentWindow: true
+  }, async tabs => {
+
+    const tab = tabs[0]
+    const isCoursePage = tab.url.match(/^https:\/\/app.memrise.com\/course\/[^/]+\/[^/]+\/$/)
+    if (!isCoursePage) {
+      print('Works only on Memrise course pages:\n app.memrise.com/course/*')
+      const form = document.getElementById('form')
+      form.style.cursor = 'not-allowed'
+      const childElementsOfMain = form.getElementsByTagName('*')
+      Array.from(childElementsOfMain).forEach(el => {
+        el.disabled = true
+        el.style.cursor = 'not-allowed'
+        if (el.type === 'button') {
+          el.style.backgroundColor = 'grey'
+        }
+      })
+    }
+    else {
+      document.getElementById('export').addEventListener('click', run)
+    }
+
+  })
 }, false)
