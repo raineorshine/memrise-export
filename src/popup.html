@@ -45,21 +45,28 @@
 </style>
 
 <body>
+  <script src="popup.js"></script>
+
   <div style="width: 150px;">
-    <script src="popup.js"></script>
+
     <h1>Memrise Export</h1>
 
-    <div>
-      <input type="radio" id="words-all" name="words" checked>
-      <label for="words-all">All words</label>
-    </div>
+    <form id="form">
 
-    <div>
-      <input type="radio" id="words-difficult" name="words">
-      <label for="words-difficult" id="difflabel">Difficult words (Memrise Pro only)</label>
-    </div>
-    <input id="export" type="button" value="Export" class="button" style="margin-top: 15px; width: 100%;" />
+      <div>
+        <input type="radio" id="words-all" name="words" checked>
+        <label for="words-all">All words</label>
+      </div>
+
+      <div>
+        <input type="radio" id="words-difficult" name="words">
+        <label for="words-difficult" id="difflabel">Difficult words (Memrise Pro only)</label>
+      </div>
+      <input id="export" type="button" value="Export" class="button" style="margin-top: 15px; width: 100%;" />
+    </form>
+
     <div id="message">Loading (0%)</div>
+
   </div>
 </body>
 

@@ -111,12 +111,6 @@ const run = () => {
 
     const tab = tabs[0]
 
-    if (!tab.url.includes('https://app.memrise.com/course/')) {
-      alert('Only works on Memrise course pages: https://app.memrise.com/course/*')
-      window.close()
-      return
-    }
-
     // parse the course id
     const courseIdMatch = tab.url.slice('https://app.memrise.com/course'.length).match(/\d+/)
     const id = courseIdMatch && courseIdMatch[0]
@@ -161,7 +155,7 @@ const run = () => {
 }
 
 // run when the export button is clicked
-document.addEventListener('DOMContentLoaded', function () {
+document.addEventListener('DOMContentLoaded', () => {
 
   // if the tab's url is not a Memrise course, disable all the extension features
   chrome.tabs.query({
@@ -170,19 +164,17 @@ document.addEventListener('DOMContentLoaded', function () {
   }, async tabs => {
 
     const tab = tabs[0]
-    const numberSlash = tab.url.split('/').length - 1 // 6 when on a course page, 7 when on a level page
-    if (!tab.url.includes('https://app.memrise.com/course/') || numberSlash !== 6) {
+    const isCoursePage = tab.url.match(/^https:\/\/app.memrise.com\/course\/[^/]+\/[^/]+\/$/)
+    if (!isCoursePage) {
       print('Works only on Memrise course pages:\n app.memrise.com/course/*')
-      const main = document.getElementById('main')
-      main.style.cursor = 'not-allowed'
-      const childElementsOfMain = main.getElementsByTagName('*')
-      console.log(childElementsOfMain)
-      Array.from(childElementsOfMain).forEach(function(element) {
-        console.log(element)
-        element.disabled = true
-        element.style.cursor = 'not-allowed'
-        if (element.id === 'export') {
-          element.style.backgroundColor = 'grey'
+      const form = document.getElementById('form')
+      form.style.cursor = 'not-allowed'
+      const childElementsOfMain = form.getElementsByTagName('*')
+      Array.from(childElementsOfMain).forEach(el => {
+        el.disabled = true
+        el.style.cursor = 'not-allowed'
+        if (el.type === 'button') {
+          el.style.backgroundColor = 'grey'
         }
       })
     }
