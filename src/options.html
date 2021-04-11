@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<style>
+  body {
+    background-color: #2D3646;
+    color: #fff;
+    font-family: "Open Sans", sans-serif;
+  }
+
+
+  input[type="radio"] {
+    cursor: pointer;
+  }
+
+  .button {
+    background-color: #F6C242;
+    border-radius: 4px;
+    border: none;
+    color: #2B3648;
+    cursor: pointer;
+    font-weight: bold;
+    padding: 5px 15px;
+  }
+
+  label {
+    cursor: pointer;
+  }
+
+  #form_settings {
+    background-color: #7e7e80;
+    padding: 5px;
+    border-radius: 4px;
+  }
+
+  #messagesettings {
+    background-color: #fff;
+    border-radius: 4px;
+    box-shadow: 1px 1px 5px #555 inset;
+    color: #2B3648;
+    visibility: hidden;
+    text-align: center;
+    padding: 3px;
+    margin: 3px;
+  }
+</style>
+
+<body style="width:140px;">
+  <script src="options.js"></script>
+  <div style="width: 140px;">
+    <form id="form_settings">
+      <div>First columns in 'Memrise Export' file:</div>
+      <div>
+        <input type="radio" id="learn-first" name="firstColumn" checked>
+        <label for="learn-first">Words to learn</label>
+      </div>
+
+      <div>
+        <input type="radio" id="known-first" name="firstColumn">
+        <label for="known-first">Words from known language</label>
+      </div>
+      <div id="messagesettings">Settings saved</div>
+      <input id="save" type="button" value="Save" class="button" style="width: 100%;" />
+    </form>
+  </div>
+</body>
+
+</html>
