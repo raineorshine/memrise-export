@@ -33,7 +33,9 @@ const source = new Promise((resolve, reject) => {
   })
 
   window.onload = () => {
-    chrome.tabs.executeScript(null, { file: 'getPageSource.js' }, () => {
+    chrome.tabs.executeScript(null, {
+      file: 'getPageSource.js'
+    }, () => {
       // If you try and inject into an extensions page or the webstore/NTP you'll get an error
       if (chrome.runtime.lastError) {
         reject(new Error('There was an error injecting script : \n' + chrome.runtime.lastError.message))
@@ -44,7 +46,9 @@ const source = new Promise((resolve, reject) => {
 })
 
 /** Returns a Promise of a list of all words in a course. */
-async function getWords(courseId, level = 0, { numLevels }) {
+async function getWords(courseId, level = 0, {
+  numLevels
+}) {
 
   if (level > 0) {
     log(`Loading p${level}...`)
@@ -52,7 +56,9 @@ async function getWords(courseId, level = 0, { numLevels }) {
 
   const url = `https://app.memrise.com/ajax/session/?course_id=${courseId}&level_index=${level + 1}&session_slug=preview`
 
-  const res = await fetch(url, { credentials: 'same-origin' })
+  const res = await fetch(url, {
+    credentials: 'same-origin'
+  })
 
   if (!res.ok) {
     if (res.status > 400) {
@@ -63,7 +69,9 @@ async function getWords(courseId, level = 0, { numLevels }) {
     // if there is no response and we have not gone through all the lessons from the course page, then we have likely hit a grammar course which is mobile app only
     else if (level < numLevels) {
       log(`Skipping p${level}... (e.g. Grammar, Multimedia)`)
-      return getWords(courseId, level + 1, { numLevels })
+      return getWords(courseId, level + 1, {
+        numLevels
+      })
     }
     // else no more levels means we are finished
     return []
@@ -97,7 +105,9 @@ async function getWords(courseId, level = 0, { numLevels }) {
     is_difficult: !!difficultWordsLearnableId.includes(row.learnable_id)
   }))
 
-  const wordsNext = await getWords(courseId, level + 1, { numLevels })
+  const wordsNext = await getWords(courseId, level + 1, {
+    numLevels
+  })
 
   return [...words, ...wordsNext]
 }
@@ -107,7 +117,10 @@ const run = () => {
   const difficultWords = document.getElementById('words-difficult').checked
   print('Loading (0%)')
 
-  chrome.tabs.query({ active: true, currentWindow: true }, async tabs => {
+  chrome.tabs.query({
+    active: true,
+    currentWindow: true
+  }, async tabs => {
 
     const tab = tabs[0]
 
@@ -130,25 +143,83 @@ const run = () => {
     const levels = dom.querySelectorAll('.levels .level')
 
     // get the words
-    const words = await getWords(id, 0, { numLevels: levels.length })
-    const tsvWords = (difficultWords ? words.filter(word => word.is_difficult) : words)
-      .map(word => `${word.translation}\t${word.original}\n`).join('')
+    const words = await getWords(id, 0, {
+      numLevels: levels.length
+    })
 
-    if (tsvWords.length > 0) {
-      chrome.runtime.sendMessage({
-        type: 'download',
-        filename: `${courseSlug || slug}${difficultWords ? '-difficult-words' : ''}.tsv`,
-        text: tsvWords,
-      })
+    // get the user settings
+    chrome.storage.sync.get({
+      knownFirst: false,
+    }, function (data) {
+      let tsvWords
+      if (data.knownFirst === true) {
+        tsvWords = (difficultWords ? words.filter(word => word.is_difficult) : words)
+          .map(word => `${word.translation}\t${word.original}\n`).join('')
+      }
+      else {
+        tsvWords = (difficultWords ? words.filter(word => word.is_difficult) : words)
+          .map(word => `${word.original}\t${word.translation}\n`).join('')
+      }
 
-      print('Done!')
-      log('Done!')
+      if (tsvWords.length > 0) {
+        chrome.runtime.sendMessage({
+          type: 'download',
+          filename: `${courseSlug || slug}${difficultWords ? '-difficult-words' : ''}.tsv`,
+          text: tsvWords,
+        })
+
+        print('Done!')
+        log('Done!')
+      }
+      else {
+        const message = `No ${difficultWords ? 'difficult ' : ''}words`
+        print(message)
+        log(message)
+      }
+
+    })
+  })
+
+}
+
+function settings() {
+  // try/catch needed because the extension options pagealso calls this function but it doesn't have the embed tag, only the popup has it
+  try {
+    const settingsembed = document.getElementById('settingsembed')
+    const settingbutton = document.getElementById('settingsbutton')
+
+    if (settingsembed.style.display === 'none') {
+      settingsembed.style.display = 'block'
+      settingbutton.value = 'Close Settings'
     }
     else {
-      const message = `No ${difficultWords ? 'difficult ' : ''}words`
-      print(message)
-      log(message)
+      settingsembed.style.display = 'none'
+      settingbutton.value = 'Settings'
     }
+  }
+  catch (error) {}
+
+  chrome.storage.sync.get({
+    knownFirst: false,
+  }, function (data) {
+    const knowFirst = data.knownFirst
+    document.getElementById('known-first').checked = knowFirst
+  })
+
+  document.getElementById('save').addEventListener('click', () => {
+    // save the chosen options
+    const knowFirstChoice = document.getElementById('known-first').checked
+    chrome.storage.sync.set({
+      knownFirst: knowFirstChoice,
+    }, function () {
+
+      // Update status to let user know options were saved. Message will disapear after 2s.
+      const messagesettings = document.getElementById('messagesettings')
+      messagesettings.style.visibility = 'visible'
+      setTimeout(function () {
+        messagesettings.style.visibility = 'hidden'
+      }, 1500)
+    })
 
   })
 
@@ -181,6 +252,8 @@ document.addEventListener('DOMContentLoaded', () => {
     else {
       document.getElementById('export').addEventListener('click', run)
     }
+
+    document.getElementById('settingsbutton').addEventListener('click', settings)
 
   })
 }, false)
