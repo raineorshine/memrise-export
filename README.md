@@ -1,3 +1,7 @@
+**UPDATE 2022-04-06**: Sadly, Memrise has removed the unofficial XHR API that Memrise Export used, so the extension no longer works. It may be possible to fetch and scrape the HTML, but this will take a dedicated effort. Feel free to contribute to a solution. Thanks to everyone who used my extension. I hope it was a delightful and productive aide to your learning.
+
+---
+
 A [Chrome Extension](https://chrome.google.com/webstore/detail/memrise-export/hcllgkpmoiolndnhmbdceffaidjmkoam?hl=en) to export all words from a [Memrise](https://memrise.com) course to a CSV file.
 
 (Technically it exports TSV, or "tab separated file", which is generally compatible wherever CSV is.)
