@@ -3,7 +3,7 @@
   "version": "1.1.0",
   "description": "Export all words from a Memrise course to a CSV file.",
   "manifest_version": 2,
-  "permissions": ["downloads", "activeTab", "https://app.memrise.com/*"],
+  "permissions": ["activeTab", "cookies", "downloads", "https://app.memrise.com/*"],
   "background": {
     "persistent": false,
     "scripts": ["background.js"]
